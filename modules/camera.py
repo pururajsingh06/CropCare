@@ -128,11 +128,13 @@ class ESP32CamClient:
         capture_path: str = CAMERA_CAPTURE_PATH,
         stream_port: Optional[int] = None,
         stream_path: str = CAMERA_STREAM_PATH,
+        custom_stream_url: Optional[str] = None,
         timeout: int = CAMERA_TIMEOUT
     ):
         self.ip_address = ip_address.strip()
         self.port = port
         self.capture_path = capture_path.strip() if capture_path.strip().startswith("/") else f"/{capture_path.strip()}"
+        self.custom_stream_url = custom_stream_url.strip() if custom_stream_url and custom_stream_url.strip() else None
         
         # Standard Arduino CameraWebServer runs HTTP UI on port 80 and MJPEG stream on port 81
         if stream_port is not None:
@@ -160,6 +162,8 @@ class ESP32CamClient:
 
     @property
     def stream_url(self) -> str:
+        if self.custom_stream_url:
+            return self.custom_stream_url
         addr = self.ip_address.strip()
         if addr.startswith("http://") or addr.startswith("https://"):
             return f"{addr.rstrip('/')}{self.stream_path}"

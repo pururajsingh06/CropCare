@@ -210,18 +210,28 @@ def render_disease_detection_page():
                 )
                 st.session_state["esp32_cam_path_val"] = cam_path
 
+            custom_stream_url = st.text_input(
+                "Dedicated Stream URL (Optional):",
+                value=st.session_state.get("esp32_cam_custom_stream_val", ""),
+                key="esp32_cam_custom_stream_input",
+                help="Leave empty if using the single-tunnel bridge or same host. If you have a separate stream URL (e.g. from ngrok), paste it here."
+            )
+            st.session_state["esp32_cam_custom_stream_val"] = custom_stream_url
+
         # If the expander is collapsed, retrieve values from session state
         cam_ip = st.session_state.get("esp32_cam_ip_val", "192.168.1.50")
         cam_port = int(st.session_state.get("esp32_cam_port_val", 80))
         stream_port = int(st.session_state.get("esp32_cam_stream_port_val", 81))
         cam_path = st.session_state.get("esp32_cam_path_val", "/capture")
+        custom_stream_url = st.session_state.get("esp32_cam_custom_stream_val", "")
 
         cam_client = ESP32CamClient(
             ip_address=cam_ip,
             port=cam_port,
             capture_path=cam_path,
             stream_port=stream_port,
-            stream_path="/stream"
+            stream_path="/stream",
+            custom_stream_url=custom_stream_url if custom_stream_url.strip() else None
         )
 
         # LIVE VIDEO FEED VIEWPORT

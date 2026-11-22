@@ -127,6 +127,64 @@ streamlit run app.py --server.address=0.0.0.0 --server.port=8501
 
 ---
 
+## 🌐 Connecting ESP32-CAM (Both Live Stream & Still Capture) to Streamlit Cloud via ngrok
+
+The ESP32-CAM uses two separate ports:
+- **Port 80:** HTTP Still Capture (`/capture`)
+- **Port 81:** MJPEG Live Stream (`/stream`)
+
+Because free ngrok accounts are limited to **1 simultaneous tunnel**, the project includes an automated bridge (`esp32_bridge.py`) that unites both ports onto a single endpoint.
+
+### Method A: Single Free ngrok Tunnel (Recommended)
+
+1. **Start the Dual-Port Bridge on your PC:**
+   Open a terminal in your project directory and run (replace with your ESP32's local IP):
+   ```bash
+   python esp32_bridge.py 192.168.1.50
+   ```
+   *This unites Port 80 and Port 81 onto `http://localhost:8080`.*
+
+2. **Start ngrok:**
+   In a second terminal window, run:
+   ```bash
+   ngrok http 8080
+   ```
+   Copy the generated public URL (e.g., `https://a1b2-c3d4.ngrok-free.app`).
+
+3. **Paste into the Cloud Dashboard:**
+   - Open your deployed Streamlit Cloud app.
+   - Go to **Disease Detection** -> **📷 ESP32-CAM IoT Hardware**.
+   - Paste the URL `https://a1b2-c3d4.ngrok-free.app` into **ESP32-CAM IP or Public Tunnel URL**.
+   - **Both the live video feed AND frame capture will work seamlessly over the internet!**
+
+---
+
+### Method B: Native ngrok Multi-Tunnel (`ngrok.yml`)
+
+If your ngrok plan supports multiple tunnels, configure `ngrok.yml`:
+
+```yaml
+version: "2"
+authtoken: <YOUR_AUTHTOKEN>
+tunnels:
+  esp-capture:
+    proto: http
+    addr: 192.168.1.50:80
+  esp-stream:
+    proto: http
+    addr: 192.168.1.50:81
+```
+
+Run:
+```bash
+ngrok start --all
+```
+In your dashboard:
+- Paste the `esp-capture` URL into **ESP32-CAM IP or Public Tunnel URL**.
+- Paste the `esp-stream` URL into **Dedicated Stream URL (Optional)**.
+
+---
+
 ## 🔒 Cloud vs ESP32-CAM Architecture Summary
 
 | Feature | Cloud Deployment (Streamlit Cloud / HF) | Local Network Deployment (`--server.address=0.0.0.0`) |
