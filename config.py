@@ -42,7 +42,7 @@ DEFAULT_PREPROCESSING = "mobilenet_v2"
 SUPPORTED_IMAGE_TYPES = ["jpg", "jpeg", "png", "webp"]
 
 # Image & Out-of-Distribution (OOD) Validation Thresholds
-MIN_CONFIDENCE_THRESHOLD = 55.0       # Minimum % confidence required to accept prediction (calibrated to admit real field/phone leaves while rejecting unsupported species)
+MIN_CONFIDENCE_THRESHOLD = 75.0       # Minimum % confidence required to accept prediction (75% threshold)
 MIN_PREDICTION_MARGIN = 15.0          # Minimum % margin between top-1 and top-2 candidate
 MAX_PREDICTION_ENTROPY = 1.15         # Maximum Shannon entropy before flagging OOD/uncertainty
 MIN_FOLIAGE_COVERAGE = 0.10           # Minimum foliage color ratio (10%) required (admits leaves photographed against paper or desk)
