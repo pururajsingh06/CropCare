@@ -42,13 +42,13 @@ DEFAULT_PREPROCESSING = "mobilenet_v2"
 SUPPORTED_IMAGE_TYPES = ["jpg", "jpeg", "png", "webp"]
 
 # Image & Out-of-Distribution (OOD) Validation Thresholds
-MIN_CONFIDENCE_THRESHOLD = 75.0       # Minimum % confidence required to accept prediction (75% threshold)
-MIN_PREDICTION_MARGIN = 15.0          # Minimum % margin between top-1 and top-2 candidate
-MAX_PREDICTION_ENTROPY = 1.15         # Maximum Shannon entropy before flagging OOD/uncertainty
-MIN_FOLIAGE_COVERAGE = 0.10           # Minimum foliage color ratio (10%) required (admits leaves photographed against paper or desk)
-MIN_GREEN_TISSUE_RATIO = 0.04         # Minimum chlorophyll green leaf tissue ratio (4% permits heavily diseased/blighted leaves)
-MIN_IMAGE_VARIANCE = 12.0             # Minimum standard deviation of pixel values (detects blank/solid monochrome)
-MAX_UNNATURAL_COLOR_RATIO = 0.30      # Max artificial/unnatural color ratio (vivid blue/cyan/magenta)
+MIN_CONFIDENCE_THRESHOLD = 82.0       # Minimum % confidence required to accept prediction (dataset samples score 93-100%)
+MIN_PREDICTION_MARGIN = 40.0          # Minimum % margin between top-1 and top-2 candidate (dataset samples score >85%)
+MAX_PREDICTION_ENTROPY = 0.85         # Maximum Shannon entropy before flagging OOD/uncertainty (dataset samples score <0.36)
+MIN_FOLIAGE_COVERAGE = 0.25           # Minimum foliage color ratio (25%) required
+MIN_GREEN_TISSUE_RATIO = 0.25         # Minimum chlorophyll green leaf tissue ratio (25%) required
+MIN_IMAGE_VARIANCE = 15.0             # Minimum standard deviation of pixel values (detects blank/solid)
+MAX_UNNATURAL_COLOR_RATIO = 0.18      # Max artificial/unnatural color ratio (blue/cyan/magenta)
 
 # ESP32-CAM Configuration (IoT Hardware)
 DEFAULT_CAMERA_IP = os.getenv("ESP32_CAM_IP", "192.168.1.50")

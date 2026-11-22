@@ -149,40 +149,46 @@ def validate_leaf_foliage(image: Image.Image) -> Tuple[bool, str, dict]:
     std_dev = float(np.std(arr))
     if std_dev < MIN_IMAGE_VARIANCE:
         return False, "The uploaded image lacks visual texture and variation (appears blank or uniform).", {
-            "std_dev": round(std_dev, 2),
-            "foliar_ratio": 0.0,
-            "green_ratio": 0.0,
-            "unnatural_ratio": 0.0
+            "std_dev": round(std_dev, 2)
         }
 
     r = arr[:, :, 0].astype(np.float32)
     g = arr[:, :, 1].astype(np.float32)
     b = arr[:, :, 2].astype(np.float32)
 
-    # 2. Unnatural Non-Plant Colors (Vivid Blues, Cyans, Magentas, Violets)
-    # Natural leaves do not contain vivid blue/purple tarps, mats, or plastic items.
+    # 2. Unnatural Non-Plant Colors (Blues, Cyans, Magentas, Violets)
+    # Natural agricultural leaves do not contain prominent blue or magenta hues.
     hsv = cv2.cvtColor(arr, cv2.COLOR_RGB2HSV)
     h = hsv[:, :, 0]
     s = hsv[:, :, 1]
     v = hsv[:, :, 2]
 
-    # Vivid artificial blues/cyans/magentas (require high saturation to avoid flagging cool shadows on desk/paper)
-    blue_dominant = (b > 65) & (b > g * 1.25) & (b > r * 1.25)
-    hsv_unnatural = (h >= 95) & (h <= 170) & (s >= 70) & (v >= 60)
+    blue_dominant = (b > 50) & (b > g * 1.12) & (b > r * 1.12)
+    hsv_unnatural = (h >= 95) & (h <= 170) & (s >= 35) & (v >= 35)
     unnatural_mask = blue_dominant | hsv_unnatural
     unnatural_ratio = float(np.count_nonzero(unnatural_mask) / total_pixels)
+
+    if unnatural_ratio > MAX_UNNATURAL_COLOR_RATIO:
+        return False, (
+            f"Prominent non-plant artificial colors detected ({unnatural_ratio:.1%} "
+            f"blue/cyan/purple background, max allowed: {MAX_UNNATURAL_COLOR_RATIO:.0%}). "
+            "Image appears to be a non-crop object."
+        ), {
+            "unnatural_ratio": round(unnatural_ratio * 100.0, 1),
+            "max_allowed": round(MAX_UNNATURAL_COLOR_RATIO * 100.0, 1)
+        }
 
     # 3. Foliar Vegetation & Chlorophyll Analysis
     # Excess Green Index: 2G - R - B
     exg = 2.0 * g - r - b
 
-    # Chlorophyll green tissue: ExG > 8 and G > R and G > B with natural HSV leaf green
-    green_tissue_mask = (exg > 8) & (g > r) & (g > b) & (h >= 24) & (h <= 98) & (s >= 20) & (v >= 20)
+    # Chlorophyll green tissue: ExG > 12 and G > R and G > B with natural HSV leaf green
+    green_tissue_mask = (exg > 12) & (g > r) & (g > b) & (h >= 25) & (h <= 95) & (s >= 25) & (v >= 25)
     green_ratio = float(np.count_nonzero(green_tissue_mask) / total_pixels)
 
     # Foliar chlorotic/necrotic lesion tissue (brown, yellow, tan blight/rust spots):
-    # Detects necrotic, yellowing, or blighted foliar disease areas
-    lesion_mask = (h >= 6) & (h <= 32) & (s >= 20) & (v >= 20) & (r >= b) & (g >= b)
+    # Require G > B + 12 and warm hues [10, 25] to distinguish leaf lesions from human skin or cardboard
+    lesion_mask = (h >= 10) & (h <= 25) & (s >= 35) & (v >= 35) & (g > b + 12) & (r > b + 15)
 
     # Combined foliar mask (green chlorophyll + leaf disease lesions)
     foliar_mask = green_tissue_mask | lesion_mask
@@ -195,13 +201,6 @@ def validate_leaf_foliage(image: Image.Image) -> Tuple[bool, str, dict]:
         "std_dev": round(std_dev, 2)
     }
 
-    if unnatural_ratio > MAX_UNNATURAL_COLOR_RATIO:
-        return False, (
-            f"Prominent non-plant artificial colors detected ({unnatural_ratio:.1%} "
-            f"blue/cyan/purple background, max allowed: {MAX_UNNATURAL_COLOR_RATIO:.0%}). "
-            "Image appears to be a non-crop object."
-        ), diagnostics
-
     # Foliar coverage requirement
     if foliar_ratio < MIN_FOLIAGE_COVERAGE:
         return False, (
@@ -210,9 +209,8 @@ def validate_leaf_foliage(image: Image.Image) -> Tuple[bool, str, dict]:
             "The uploaded photo does not appear to be a crop leaf."
         ), diagnostics
 
-    # Chlorophyll presence requirement (permits diseased/blighted leaves with high lesion necrosis)
-    has_sufficient_green = (green_ratio >= MIN_GREEN_TISSUE_RATIO) or (foliar_ratio >= 0.16 and green_ratio >= 0.02)
-    if not has_sufficient_green:
+    # Chlorophyll presence requirement (real leaf must possess genuine plant tissue)
+    if green_ratio < MIN_GREEN_TISSUE_RATIO:
         return False, (
             f"Lack of natural plant chlorophyll/vegetation (green leaf tissue: {green_ratio:.1%}, "
             f"minimum expected: {MIN_GREEN_TISSUE_RATIO:.0%}). "
