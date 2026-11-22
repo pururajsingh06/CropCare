@@ -168,17 +168,24 @@ def render_disease_detection_page():
     # TAB 3: ESP32-CAM IOT INTEGRATION
     with tab_esp32:
         st.markdown("##### 📷 ESP32-CAM IoT Wireless Acquisition")
-        st.caption("Inspect live camera video feed from your ESP32-CAM edge node over local Wi-Fi and capture leaf frames for diagnosis.")
+        st.caption("Inspect live camera video feed from your ESP32-CAM edge node and capture leaf frames for diagnosis.")
+
+        st.info(
+            "💡 **Cloud vs Local Wi-Fi IoT Notice:** "
+            "When running on the deployed cloud website (Streamlit Cloud), the remote server cannot reach private local Wi-Fi IPs (`192.168.x.x`).\n\n"
+            "- **For Lab Demonstrations / Viva Presentations:** Run the dashboard locally on your laptop (`streamlit run app.py --server.address=0.0.0.0`) so the ESP32-CAM and dashboard connect on the same Wi-Fi.\n"
+            "- **To connect ESP32-CAM to this Cloud Site:** Run a free public tunnel on your PC (`ngrok http 192.168.1.9:80`) and paste the `https://...ngrok-free.app` URL into the field below."
+        )
 
         # Camera Network Settings Controls
-        with st.expander("⚙️ Camera Connection & Streaming Configuration", expanded=False):
+        with st.expander("⚙️ Camera Connection & Streaming Configuration", expanded=True):
             cam_c1, cam_c2, cam_c3, cam_c4 = st.columns([2, 1, 1, 1.2])
             with cam_c1:
                 cam_ip = st.text_input(
-                    "ESP32-CAM IP Address:",
-                    value=st.session_state.get("esp32_cam_ip_val", "192.168.1.50"),
+                    "ESP32-CAM IP or Public Tunnel URL:",
+                    value=st.session_state.get("esp32_cam_ip_val", "192.168.1.9"),
                     key="esp32_cam_ip_input",
-                    help="IP address assigned by your Wi-Fi router (displayed in Arduino Serial Monitor)."
+                    help="Local IP (e.g. 192.168.1.9) when running locally, or public URL (e.g. https://xxx.ngrok-free.app) for cloud deployment."
                 )
                 st.session_state["esp32_cam_ip_val"] = cam_ip
             with cam_c2:

@@ -147,9 +147,12 @@ class ESP32CamClient:
 
     @property
     def base_url(self) -> str:
+        addr = self.ip_address.strip()
+        if addr.startswith("http://") or addr.startswith("https://"):
+            return addr.rstrip("/")
         if self.port == 80:
-            return f"http://{self.ip_address}"
-        return f"http://{self.ip_address}:{self.port}"
+            return f"http://{addr}"
+        return f"http://{addr}:{self.port}"
 
     @property
     def capture_url(self) -> str:
@@ -157,9 +160,12 @@ class ESP32CamClient:
 
     @property
     def stream_url(self) -> str:
+        addr = self.ip_address.strip()
+        if addr.startswith("http://") or addr.startswith("https://"):
+            return f"{addr.rstrip('/')}{self.stream_path}"
         if self.stream_port == 80:
-            return f"http://{self.ip_address}{self.stream_path}"
-        return f"http://{self.ip_address}:{self.stream_port}{self.stream_path}"
+            return f"http://{addr}{self.stream_path}"
+        return f"http://{addr}:{self.stream_port}{self.stream_path}"
 
     def capture_stream_frame(self) -> Tuple[Optional[Image.Image], Optional[str]]:
         """
@@ -225,6 +231,21 @@ class ESP32CamClient:
         except urllib.error.HTTPError as e:
             return False, f"HTTP Error {e.code} at {self.capture_url}: {e.reason}."
         except urllib.error.URLError as e:
+            raw_addr = self.ip_address.strip()
+            is_private = (
+                raw_addr.startswith("192.168.")
+                or raw_addr.startswith("10.")
+                or raw_addr.startswith("172.16.")
+                or "localhost" in raw_addr
+                or "127.0.0.1" in raw_addr
+            )
+            if "timed out" in str(e).lower() and is_private:
+                return False, (
+                    f"Cannot reach private IP {self.base_url} (timed out). "
+                    "Cloud-hosted sites cannot access private home Wi-Fi IPs across local router firewalls. "
+                    "For cloud usage: 1) Run a free public tunnel (e.g. 'ngrok http 192.168.1.9:80') and paste the public URL here, or "
+                    "2) Run the dashboard locally on your Wi-Fi network ('streamlit run app.py')."
+                )
             return False, f"Cannot reach ESP32-CAM at {self.base_url}: {e.reason}. Check IP address and Wi-Fi connection."
         except Exception as e:
             return False, f"Camera test error: {str(e)}"
@@ -312,6 +333,21 @@ class ESP32CamClient:
         except urllib.error.HTTPError as e:
             return None, f"HTTP Error {e.code} at {target_url}: {e.reason}."
         except urllib.error.URLError as e:
+            raw_addr = self.ip_address.strip()
+            is_private = (
+                raw_addr.startswith("192.168.")
+                or raw_addr.startswith("10.")
+                or raw_addr.startswith("172.16.")
+                or "localhost" in raw_addr
+                or "127.0.0.1" in raw_addr
+            )
+            if "timed out" in str(e).lower() and is_private:
+                return None, (
+                    f"Cannot reach private IP {self.base_url} (timed out). "
+                    "Cloud-hosted sites cannot access private home Wi-Fi IPs across router firewalls. "
+                    "To capture frames on the cloud dashboard: 1) Run 'ngrok http 192.168.1.9:80' on your PC and paste the public ngrok URL, or "
+                    "2) Run the dashboard locally on your Wi-Fi network ('streamlit run app.py')."
+                )
             return None, (
                 f"Cannot reach ESP32-CAM at {target_url}. "
                 f"Ensure the camera board is powered on and connected to the same WiFi network. ({e.reason})"
