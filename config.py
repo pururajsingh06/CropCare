@@ -42,7 +42,7 @@ DEFAULT_PREPROCESSING = "mobilenet_v2"
 SUPPORTED_IMAGE_TYPES = ["jpg", "jpeg", "png", "webp"]
 
 # Image & Out-of-Distribution (OOD) Validation Thresholds
-MIN_CONFIDENCE_THRESHOLD = 80.0       # Minimum % confidence required to accept prediction (filters out non-target crops like Money Plant)
+MIN_CONFIDENCE_THRESHOLD = 82.0       # Minimum % confidence required to accept prediction (82% threshold)
 MIN_PREDICTION_MARGIN = 50.0          # Minimum % margin between top-1 and top-2 candidate
 MAX_PREDICTION_ENTROPY = 0.65         # Maximum Shannon entropy before flagging OOD/uncertainty
 MIN_FOLIAGE_COVERAGE = 0.25           # Minimum foliage color ratio (25%) required
