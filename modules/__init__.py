@@ -1,0 +1,3 @@
+"""
+CropCare AI Modules Package
+"""

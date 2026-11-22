@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+*.env
+
+# Large raw datasets (excluded from Git to keep repo lightweight < 50MB)
+minor_dataset/
+models-20261026T152356Z-1-001/
+/baseline_mobilenetv2.keras
+
+# Uploaded scan files from user testing
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+!uploads/.gitkeep
+
+# Streamlit local config & secrets
+.streamlit/secrets.toml
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

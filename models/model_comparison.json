@@ -1,0 +1,16 @@
+{
+    "baseline": {
+        "test_accuracy": 0.9697,
+        "test_loss": 0.0977,
+        "macro_precision": 0.9661,
+        "macro_recall": 0.9664,
+        "macro_f1": 0.966
+    },
+    "pso_optimized": {
+        "test_accuracy": 0.9673,
+        "test_loss": 0.1,
+        "macro_precision": 0.9654,
+        "macro_recall": 0.9604,
+        "macro_f1": 0.9626
+    }
+}

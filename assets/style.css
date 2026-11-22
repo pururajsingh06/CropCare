@@ -1,0 +1,294 @@
+/* CropCare AI - Custom Modern Agricultural Stylesheet */
+
+/* Main Container and Typography */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Header & Banner Styles */
+.hero-banner {
+    background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 60%, #40916c 100%);
+    color: #ffffff;
+    padding: 2.2rem 2.4rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 25px -5px rgba(27, 67, 50, 0.25);
+    border-left: 6px solid #52b788;
+}
+
+.hero-banner h1 {
+    font-size: 2.1rem;
+    font-weight: 800;
+    margin: 0;
+    color: #ffffff !important;
+    letter-spacing: -0.02em;
+}
+
+.hero-banner p.subtitle {
+    font-size: 1.05rem;
+    color: #d8f3dc;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    font-weight: 500;
+}
+
+.hero-banner .badge-tag {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(4px);
+    color: #ffffff;
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Card Containers */
+.card-metric {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 14px;
+    padding: 1.4rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+}
+
+.card-metric:hover {
+    box-shadow: 0 8px 20px rgba(45, 106, 79, 0.09);
+    transform: translateY(-2px);
+}
+
+.card-metric .metric-icon {
+    font-size: 1.7rem;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.card-metric .metric-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #6c757d;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+}
+
+.card-metric .metric-value {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #1b4332;
+    line-height: 1.2;
+}
+
+.card-metric .metric-caption {
+    font-size: 0.78rem;
+    color: #8a99a8;
+    margin-top: 0.4rem;
+}
+
+/* Specialized Card Themes */
+.card-benchmark {
+    border-top: 4px solid #2d6a4f;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdfb 100%);
+}
+
+.card-live {
+    border-top: 4px solid #52b788;
+    background: linear-gradient(180deg, #ffffff 0%, #f4fbf6 100%);
+}
+
+/* Section Containers */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid #e8f5e9;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: #1b4332;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+/* Prediction Result Cards */
+.result-card-healthy {
+    background: #f4fbf6;
+    border: 2px solid #52b788;
+    border-radius: 16px;
+    padding: 1.8rem;
+    box-shadow: 0 6px 18px rgba(82, 183, 136, 0.15);
+}
+
+.result-card-diseased {
+    background: #fff8f8;
+    border: 2px solid #e76f51;
+    border-radius: 16px;
+    padding: 1.8rem;
+    box-shadow: 0 6px 18px rgba(231, 111, 81, 0.15);
+}
+
+/* Status Badges */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 1.1rem;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.status-pill-healthy {
+    background: #d8f3dc;
+    color: #1b4332;
+    border: 1px solid #74c69d;
+}
+
+.status-pill-diseased {
+    background: #ffe3e3;
+    color: #c92a2a;
+    border: 1px solid #ffa8a8;
+}
+
+/* Confidence Gauge Bar */
+.confidence-bar-container {
+    background: #e9ecef;
+    border-radius: 10px;
+    height: 12px;
+    width: 100%;
+    overflow: hidden;
+    margin: 0.5rem 0;
+}
+
+.confidence-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+.confidence-bar-green {
+    background: linear-gradient(90deg, #52b788 0%, #2d6a4f 100%);
+}
+
+.confidence-bar-amber {
+    background: linear-gradient(90deg, #f4a261 0%, #e76f51 100%);
+}
+
+/* Crop Info Cards */
+.crop-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+}
+
+.crop-card:hover {
+    border-color: #52b788;
+}
+
+/* Sidebar Custom Styling */
+[data-testid="stSidebar"] {
+    background-color: #f7faf8 !important;
+    border-right: 1px solid #e2ece5;
+}
+
+.sidebar-brand {
+    padding: 1rem 0.5rem 1.5rem 0.5rem;
+    border-bottom: 1px solid #e2ece5;
+    margin-bottom: 1rem;
+}
+
+.sidebar-brand h2 {
+    color: #1b4332;
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sidebar-brand p {
+    color: #40916c;
+    font-size: 0.78rem;
+    margin: 0.2rem 0 0 0;
+    font-weight: 600;
+}
+
+.sidebar-model-badge {
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    color: #2e7d32;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 0.8rem 0;
+}
+
+/* Advisory Box */
+.advisory-box {
+    background: #ffffff;
+    border-left: 4px solid #2d6a4f;
+    border-radius: 0 10px 10px 0;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.advisory-box h4 {
+    margin: 0 0 0.5rem 0;
+    color: #1b4332;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.advisory-box ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: #495057;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Empty State Box */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: #ffffff;
+    border: 2px dashed #d8e2dc;
+    border-radius: 16px;
+    margin: 1.5rem 0;
+}
+
+.empty-state .icon {
+    font-size: 2.8rem;
+    color: #52b788;
+    margin-bottom: 0.8rem;
+}
+
+.empty-state h4 {
+    color: #1b4332;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.empty-state p {
+    color: #6c757d;
+    font-size: 0.92rem;
+    max-width: 480px;
+    margin: 0 auto;
+}

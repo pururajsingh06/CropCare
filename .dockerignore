@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.venv
+venv
+env
+minor_dataset/
+models-20261026T152356Z-1-001/
+.git
+.gitignore
