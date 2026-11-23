@@ -8,6 +8,7 @@ from typing import Tuple, Optional, List
 import io
 import urllib.request
 import urllib.error
+import urllib.parse
 from PIL import Image
 import numpy as np
 import cv2
@@ -150,11 +151,20 @@ class ESP32CamClient:
     @property
     def base_url(self) -> str:
         addr = self.ip_address.strip()
-        if addr.startswith("http://") or addr.startswith("https://"):
-            return addr.rstrip("/")
-        if self.port == 80:
-            return f"http://{addr}"
-        return f"http://{addr}:{self.port}"
+        raw = addr if (addr.startswith("http://") or addr.startswith("https://")) else f"http://{addr}"
+        parsed = urllib.parse.urlparse(raw)
+        scheme = parsed.scheme or "http"
+        hostname = parsed.hostname or addr
+        port = parsed.port
+
+        # If it's a tunnel or explicit bridge port was given, preserve exact host:port
+        if "ngrok" in hostname or "loca.lt" in hostname or "trycloudflare" in hostname or port == 8080:
+            return raw.rstrip("/")
+
+        target_port = port if port is not None else self.port
+        if target_port == 80:
+            return f"{scheme}://{hostname}"
+        return f"{scheme}://{hostname}:{target_port}"
 
     @property
     def capture_url(self) -> str:
@@ -164,12 +174,23 @@ class ESP32CamClient:
     def stream_url(self) -> str:
         if self.custom_stream_url:
             return self.custom_stream_url
+
         addr = self.ip_address.strip()
-        if addr.startswith("http://") or addr.startswith("https://"):
-            return f"{addr.rstrip('/')}{self.stream_path}"
-        if self.stream_port == 80:
-            return f"http://{addr}{self.stream_path}"
-        return f"http://{addr}:{self.stream_port}{self.stream_path}"
+        raw = addr if (addr.startswith("http://") or addr.startswith("https://")) else f"http://{addr}"
+        parsed = urllib.parse.urlparse(raw)
+        scheme = parsed.scheme or "http"
+        hostname = parsed.hostname or addr
+        port = parsed.port
+
+        # If it's a tunnel or local bridge (e.g. ngrok, localhost:8080), route through the single multiplexed port
+        if "ngrok" in hostname or "loca.lt" in hostname or "trycloudflare" in hostname or port == 8080:
+            return f"{raw.rstrip('/')}{self.stream_path}"
+
+        # For direct local IP connection (e.g. 10.26.131.235), stream is hosted on stream_port (default 81)
+        target_port = self.stream_port
+        if target_port == 80:
+            return f"{scheme}://{hostname}{self.stream_path}"
+        return f"{scheme}://{hostname}:{target_port}{self.stream_path}"
 
     def capture_stream_frame(self) -> Tuple[Optional[Image.Image], Optional[str]]:
         """
