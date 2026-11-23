@@ -240,29 +240,60 @@ def render_disease_detection_page():
 
         if show_live_video:
             stream_url = cam_client.stream_url
+            raw_addr = cam_ip.strip()
+            is_local_ip = (
+                raw_addr.startswith("192.168.")
+                or raw_addr.startswith("10.")
+                or raw_addr.startswith("172.")
+                or "localhost" in raw_addr
+                or "127.0.0.1" in raw_addr
+            )
+
+            # Warning if user might be on cloud HTTPS but using private LAN IP
+            if is_local_ip:
+                st.caption(
+                    "💡 **Local Wi-Fi Mode**: If accessing this dashboard locally (`localhost:8501`), the stream connects directly. "
+                    "If viewing on **Streamlit Cloud** (`https://*.streamlit.app`), browsers block private IPs (`192.168.x.x`) due to Mixed-Content security. "
+                    "To view on cloud: run `python esp32_bridge.py` & `ngrok http 8080` on your PC, then enter the `https://*.ngrok-free.app` URL above."
+                )
+
             st.markdown(f"""
                 <div style="background: #0b0f19; border: 2px solid #2d6a4f; border-radius: 14px; overflow: hidden; position: relative; margin: 0.5rem 0 1rem 0; box-shadow: 0 8px 24px rgba(0,0,0,0.18);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: #131d2e; padding: 0.55rem 1.1rem; border-bottom: 1px solid #1e293b;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #131d2e; padding: 0.55rem 1.1rem; border-bottom: 1px solid #1e293b; flex-wrap: wrap; gap: 0.5rem;">
                         <div style="display: flex; align-items: center; gap: 0.6rem;">
                             <span style="display: inline-block; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; box-shadow: 0 0 8px #ef4444;"></span>
                             <span style="font-weight: 800; font-size: 0.85rem; color: #ffffff; letter-spacing: 0.05em;">LIVE ESP32-CAM STREAM</span>
                         </div>
                         <div style="font-family: monospace; font-size: 0.78rem; color: #94a3b8;">
-                            {stream_url}
+                            <a href="{stream_url}" target="_blank" style="color: #38bdf8; text-decoration: underline; margin-right: 0.8rem;">Open Stream in New Tab ↗</a>
+                            <span>{stream_url}</span>
                         </div>
                     </div>
-                    <div style="text-align: center; padding: 0.8rem; background: #020617; min-height: 260px; display: flex; align-items: center; justify-content: center;">
+                    <div style="text-align: center; padding: 0.8rem; background: #020617; min-height: 260px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
                         <img src="{stream_url}" 
-                             alt="ESP32-CAM Live Feed (Waiting for video stream...)" 
+                             id="esp32_live_stream_img"
+                             alt="ESP32-CAM Live Feed (Connecting to video stream...)" 
                              style="max-width: 100%; max-height: 420px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.4); object-fit: contain;" 
-                             onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'padding: 2.5rem 1rem; color: #94a3b8; font-size: 0.9rem;\\'>⚠️ <b>Live Stream Waiting for ESP32-CAM Signal</b><br><span style=\\'font-size: 0.8rem; color: #64748b;\\'>Ensure ESP32-CAM is powered with 5V, connected to local Wi-Fi, and streaming at <code>{stream_url}</code>.<br>You can still click <b>Capture Frame for Diagnosis</b> below to acquire a snapshot directly.</span></div>';" />
+                             onerror="this.style.display='none'; document.getElementById('esp32_stream_fallback').style.display='block';"
+                             onload="this.style.display='block'; document.getElementById('esp32_stream_fallback').style.display='none';" />
+                        <div id="esp32_stream_fallback" style="display: none; padding: 2rem 1rem; color: #94a3b8; font-size: 0.9rem;">
+                            ⚠️ <b>Live Stream Waiting for ESP32-CAM Signal</b><br>
+                            <span style="font-size: 0.82rem; color: #64748b; line-height: 1.6;">
+                                Could not render live MJPEG stream from <code>{stream_url}</code> directly in this browser viewport.<br>
+                                <b>Quick Fixes:</b><br>
+                                1. Verify your ESP32-CAM is powered with a stable 5V 2A supply and connected to Wi-Fi.<br>
+                                2. Click <a href="{stream_url}" target="_blank" style="color: #38bdf8;"><b>Open Stream in New Tab ↗</b></a> to test if your browser can reach the video feed.<br>
+                                3. Click <b>🔴 Test Live Stream</b> below to diagnose connection response.<br>
+                                4. Click <b>🔄 Fetch Live Frame</b> below to pull the current camera frame instantly via backend server!
+                            </span>
+                        </div>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
             st.caption("💡 Point the ESP32-CAM camera lens steadily at the crop leaf in the live viewport above, then click **Capture Frame for Diagnosis** below.")
 
         # ACTION BUTTONS ROW
-        btn_c1, btn_c2, btn_c3 = st.columns([1.8, 1.2, 1.2])
+        btn_c1, btn_c2, btn_c3, btn_c4 = st.columns([1.6, 1.2, 1.2, 1.2])
 
         with btn_c1:
             if st.button("📸 Capture Frame for Diagnosis", use_container_width=True, type="primary"):
@@ -279,16 +310,40 @@ def render_disease_detection_page():
                         st.error(f"Capture failed: {cam_err}")
 
         with btn_c2:
-            if st.button("📡 Test Connection", use_container_width=True):
-                with st.spinner("Pinging ESP32-CAM..."):
-                    ok, msg = cam_client.test_connection()
-                    if ok:
-                        st.success(f"✅ {msg}")
+            if st.button("🔄 Fetch Live Frame", use_container_width=True, help="Pulls the latest single frame from the live video stream or snapshot"):
+                with st.spinner("Fetching frame from live stream..."):
+                    frame_img, frame_err = cam_client.capture_stream_frame()
+                    if frame_img is None:
+                        # Fallback to snapshot
+                        frame_img, frame_err = cam_client.capture_snapshot()
+                    if frame_img:
+                        st.success("Current live frame fetched successfully!")
+                        leaf_image = frame_img
+                        image_source_name = f"ESP32-CAM Live Frame ({cam_ip})"
+                        st.session_state["active_sample_image"] = leaf_image
+                        st.session_state["active_sample_name"] = image_source_name
+                        st.rerun()
                     else:
-                        st.warning(f"⚠️ {msg}")
+                        st.error(f"Could not fetch frame: {frame_err}")
 
         with btn_c3:
-            if st.button("🔍 Auto-Detect Endpoints", use_container_width=True):
+            if st.button("📡 Test Snapshot & Stream", use_container_width=True):
+                with st.spinner("Diagnosing ESP32-CAM ports..."):
+                    snap_ok, snap_msg = cam_client.test_connection()
+                    stream_ok, stream_msg = cam_client.test_stream_connection()
+                    
+                    if snap_ok:
+                        st.success(f"**Snapshot Port**: ✅ {snap_msg}")
+                    else:
+                        st.warning(f"**Snapshot Port**: ⚠️ {snap_msg}")
+                        
+                    if stream_ok:
+                        st.success(f"**Live Stream Port**: ✅ {stream_msg}")
+                    else:
+                        st.error(f"**Live Stream Port**: ❌ {stream_msg}")
+
+        with btn_c4:
+            if st.button("🔍 Auto-Detect", use_container_width=True, help="Scan common ESP32-CAM camera endpoints"):
                 with st.spinner("Scanning common ESP32-CAM endpoints..."):
                     endpoints = cam_client.probe_endpoints()
                     found = [ep for ep in endpoints if ep.get("has_jpeg")]

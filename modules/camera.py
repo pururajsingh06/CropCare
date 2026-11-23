@@ -254,6 +254,37 @@ class ESP32CamClient:
         except Exception as e:
             return False, f"Camera test error: {str(e)}"
 
+    def test_stream_connection(self) -> Tuple[bool, str]:
+        """
+        Tests the live stream endpoint directly to verify if MJPEG stream packets can be received.
+        Returns: (is_reachable: bool, status_message: str)
+        """
+        try:
+            req = urllib.request.Request(
+                self.stream_url,
+                headers={"User-Agent": "CropCare-AI-Client"}
+            )
+            with urllib.request.urlopen(req, timeout=self.timeout) as response:
+                content_type = response.headers.get_content_type()
+                chunk = response.read(1024)
+
+            if "multipart" in content_type or "image" in content_type or chunk.find(b"\xff\xd8") != -1:
+                return True, f"Live stream connected at {self.stream_url} (HTTP 200, Content-Type: {content_type})!"
+            return True, f"Stream port reachable at {self.stream_url} (HTTP 200, Content-Type: {content_type})."
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return False, (
+                    f"HTTP 404 Not Found at {self.stream_url}. "
+                    "The stream route was not found on this port. "
+                    "1) In standard Arduino CameraWebServer, stream is on port 81 (adjust 'Stream Port' to 81). "
+                    "2) If using ngrok, you must run 'python esp32_bridge.py' and 'ngrok http 8080' so port 80 and 81 are bridged."
+                )
+            return False, f"HTTP Error {e.code} at {self.stream_url}: {e.reason}"
+        except urllib.error.URLError as e:
+            return False, f"Cannot connect to stream at {self.stream_url}: {e.reason}. Ensure ESP32 is powered on and Wi-Fi IP is correct."
+        except Exception as e:
+            return False, f"Stream test error: {str(e)}"
+
     def probe_endpoints(self) -> List[dict]:
         """
         Scans common ESP32-CAM endpoints to find active JPEG snapshot routes.
